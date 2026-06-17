@@ -1,92 +1,146 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Grid Prompt Studio — Acid Swiss</title>
+<title>Grid Prompt Studio — Swiss Grid</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&family=Space+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js"></script>
 <style>
 /* ============================================================
-   APP CHROME  (left config panel + right preview)
+   APP CHROME — Swiss design-system shell (Grayn-style monochrome)
+   Three panes: LEFT layout picker · CENTER preview · RIGHT config.
+   Tokens: warm off-white ground, near-black ink, subtle gray borders,
+   white cards, tiny uppercase JetBrains-Mono labels, 6px radius.
    The PREVIEW keeps the GENUINE load-bearing grid engineering:
    one CSS-var source of truth, overlay in the SAME content box,
    subgrid bands, 8px baseline lock, runtime optical alignment.
-   The look is ACID SWISS: electric blue / hot pink / navy ghost.
    ============================================================ */
+:root{
+  --bg:hsl(40 20% 98%); --fg:hsl(0 0% 9%); --card:#ffffff;
+  --muted:hsl(40 10% 94%); --muted-fg:hsl(0 0% 45%);
+  --border:hsl(0 0% 90%); --input:hsl(0 0% 90%);
+  --secondary:hsl(40 10% 94%); --rad:6px;
+  --preview-ink:#002FA7;  /* echo of the preview ink (Klein blue), used in the layout picker */
+  --accent:#002FA7;       /* UI theme color (Klein blue) — primary/active/focus states */
+}
+/* smooth recolor when the accent / theme changes */
+.btn,.chip,select,input,textarea,.skel .frame,.skel .r,.skel .nm,#layouts .brand .mark{
+  transition:background-color .35s ease,border-color .35s ease,color .35s ease,box-shadow .35s ease;}
+#paper,#paper .kicker,#paper .masthead,#paper .headline,#paper .numeral,#paper .meta,
+#paper .cap,#paper .folio,#paper .pill,#paper .guides .col,#paper .deco svg path,#paper .deco .spark svg path{
+  transition:color .35s ease,background-color .35s ease,box-shadow .35s ease,
+    fill .35s ease,text-shadow .35s ease,border-color .35s ease;}
 *{box-sizing:border-box;}
 html,body{height:100%;}
 /* ---- custom scrollbars (light theme) ---- */
-*{scrollbar-width:thin;scrollbar-color:#c9c7c1 transparent;}
+*{scrollbar-width:thin;scrollbar-color:#d9d7d1 transparent;}
 ::-webkit-scrollbar{width:10px;height:10px;}
 ::-webkit-scrollbar-track{background:transparent;}
-::-webkit-scrollbar-thumb{background:#d8d6d0;border-radius:8px;border:2px solid transparent;
+::-webkit-scrollbar-thumb{background:#dcdad4;border-radius:8px;border:2px solid transparent;
   background-clip:padding-box;}
-::-webkit-scrollbar-thumb:hover{background:#f6339a;border:2px solid transparent;background-clip:padding-box;}
+::-webkit-scrollbar-thumb:hover{background:var(--accent);border:2px solid transparent;background-clip:padding-box;}
 ::-webkit-scrollbar-corner{background:transparent;}
-body{margin:0;font-family:"Inter","Noto Sans SC",system-ui,sans-serif;background:#ffffff;color:#1c1f26;
-  display:grid;grid-template-columns:380px 1fr;grid-template-rows:100vh;height:100vh;overflow:hidden;
+body{margin:0;font-family:"Inter","Noto Sans SC",system-ui,sans-serif;background:var(--bg);color:var(--fg);
+  display:grid;grid-template-columns:252px 1fr 348px;grid-template-rows:100vh;height:100vh;overflow:hidden;
   -webkit-font-smoothing:antialiased;}
 
-/* ---- LEFT PANEL ---- */
-#panel{background:#ffffff;border-right:1px solid #fff;overflow-y:auto;padding:22px 20px 60px;}
-#panel h1{font-size:15px;letter-spacing:.02em;margin:0 0 2px;font-weight:800;color:#1c1f26;}
-#panel .sub{font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.16em;
-  text-transform:uppercase;color:#f6339a;margin:0 0 22px;}
-.group{margin-bottom:22px;}
-.group > label.cap{display:block;font-family:"Space Mono",monospace;font-size:10px;
-  letter-spacing:.16em;text-transform:uppercase;color:#8a8f99;margin-bottom:8px;}
-select,input[type=text],textarea{width:100%;background:#fafaf8;border:1px solid #dcdad4;color:#1c1f26;
-  font-family:"Inter",sans-serif;font-size:13px;padding:9px 10px;border-radius:4px;}
-select:focus,input:focus,textarea:focus{outline:none;border-color:#f6339a;}
-textarea{resize:vertical;min-height:54px;line-height:1.4;}
-.field{margin-bottom:11px;}
-.field label{display:block;font-size:10px;letter-spacing:.12em;text-transform:uppercase;
-  color:#9a9fa8;margin-bottom:4px;font-family:"Space Mono",monospace;}
-.sliders{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.slider label{display:flex;justify-content:space-between;font-family:"Space Mono",monospace;
-  font-size:10px;color:#8a8f99;margin-bottom:4px;}
-.slider label b{color:#1c1f26;font-weight:700;}
-input[type=range]{width:100%;accent-color:#f6339a;}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.hint{font-size:11px;color:#9a9fa8;line-height:1.5;margin:6px 0 0;}
-.accentrow{display:flex;gap:8px;align-items:center;}
-.accentrow input[type=color]{width:38px;height:34px;padding:0;border:1px solid #dcdad4;background:#fafaf8;border-radius:4px;}
+/* tiny mono section label used across all three panes */
+.section-label{font-family:"JetBrains Mono",monospace;font-size:10px;font-weight:500;
+  text-transform:uppercase;letter-spacing:.1em;color:var(--muted-fg);}
 
-/* ---- skeleton wireframe picker (the "骨架图") — borderless ---- */
+/* ---- LEFT PANE — layout picker ---- */
+#layouts{background:var(--card);border-right:1px solid var(--border);overflow:hidden;
+  display:flex;flex-direction:column;min-height:0;}
+#layouts .lhead{padding:16px 14px 10px;border-bottom:1px solid var(--border);}
+#layouts .brand{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+#layouts .brand .mark{width:22px;height:22px;border-radius:5px;background:var(--fg);color:var(--bg);
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;}
+#layouts .brand b{font-size:13px;font-weight:700;letter-spacing:.01em;}
+#layouts .brand span{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--muted-fg);
+  margin-left:auto;letter-spacing:.06em;}
+#layoutSearch{width:100%;background:var(--bg);border:1px solid var(--input);color:var(--fg);
+  font-family:"Inter",sans-serif;font-size:12px;padding:7px 9px;border-radius:var(--rad);margin-top:8px;}
+#layoutSearch:focus{outline:none;border-color:var(--accent);}
+.archfilter{display:flex;flex-wrap:wrap;gap:4px;margin-top:9px;}
+.chip{font-family:"JetBrains Mono",monospace;font-size:9px;letter-spacing:.06em;text-transform:uppercase;
+  padding:4px 7px;border-radius:999px;border:1px solid var(--border);background:var(--card);
+  color:var(--muted-fg);cursor:pointer;}
+.chip:hover{border-color:var(--accent);}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+#skelsWrap{flex:1;overflow-y:auto;padding:12px 14px 40px;}
+#layoutCount{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--muted-fg);
+  margin:0 0 10px;letter-spacing:.04em;}
+
+/* ---- RIGHT PANE — config ---- */
+#panel{background:var(--card);border-left:1px solid var(--border);overflow-y:auto;padding:16px 16px 60px;}
+#panel h1{font-size:14px;letter-spacing:.01em;margin:0 0 2px;font-weight:700;color:var(--fg);}
+#panel .sub{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted-fg);margin:0 0 16px;}
+.group{margin-bottom:14px;}
+.group > label.cap{display:block;font-family:"JetBrains Mono",monospace;font-size:10px;font-weight:500;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--muted-fg);margin-bottom:8px;}
+/* config cards (Grayn agentic-card) */
+.card{border:1px solid var(--border);border-radius:var(--rad);background:var(--card);
+  padding:12px;margin-bottom:12px;}
+.card > .cap{display:block;font-family:"JetBrains Mono",monospace;font-size:10px;font-weight:500;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--muted-fg);margin-bottom:10px;}
+select,input[type=text],textarea{width:100%;background:var(--bg);border:1px solid var(--input);color:var(--fg);
+  font-family:"Inter",sans-serif;font-size:13px;padding:8px 9px;border-radius:var(--rad);}
+select:focus,input:focus,textarea:focus{outline:none;border-color:var(--accent);}
+textarea{resize:vertical;min-height:52px;line-height:1.4;}
+.field{margin-bottom:10px;}
+.field label{display:block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted-fg);margin-bottom:4px;font-family:"JetBrains Mono",monospace;}
+.sliders{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.slider label{display:flex;justify-content:space-between;font-family:"JetBrains Mono",monospace;
+  font-size:10px;color:var(--muted-fg);margin-bottom:4px;}
+.slider label b{color:var(--fg);font-weight:600;}
+input[type=range]{width:100%;accent-color:var(--accent);}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.hint{font-size:11px;color:var(--muted-fg);line-height:1.5;margin:6px 0 0;}
+.accentrow{display:flex;gap:8px;align-items:center;}
+.accentrow input[type=color]{width:38px;height:34px;padding:0;border:1px solid var(--input);background:var(--bg);border-radius:var(--rad);}
+
+/* ---- skeleton wireframe cards (the "骨架图") ---- */
 .skels{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .skel{position:relative;cursor:pointer;border:none;border-radius:6px;
-  background:transparent;padding:0 0 18px;transition:transform .15s;}
-.skel:hover .frame{box-shadow:0 0 0 2px #ececec;}
-.skel.sel .frame{box-shadow:0 0 0 2px oklch(59.2% .249 .584);}
-.skel .frame{position:relative;width:100%;aspect-ratio:5/3.4;background:#FCFBF9;border-radius:4px;overflow:hidden;
-  box-shadow:0 0 0 1px #ececec;transition:box-shadow .15s;}
+  background:transparent;padding:0 0 16px;transition:transform .15s;}
+.skel:hover .frame{box-shadow:0 0 0 2px var(--border);}
+.skel.sel .frame{box-shadow:0 0 0 2px var(--preview-ink);}
+.skel .frame{position:relative;width:100%;aspect-ratio:5/3.4;background:var(--card);border-radius:4px;overflow:hidden;
+  box-shadow:0 0 0 1px var(--border);transition:box-shadow .15s;}
 .skel .r{position:absolute;}
-.skel .r.bar{background:oklch(59.2% .249 .584);}            /* title / headline */
-.skel .r.blk{background:oklch(59.2% .249 .584);}            /* numeral block */
-.skel .r.line{background:#D4D4D4;opacity:.45;}  /* body / lead lines */
-.skel .r.box{background:color-mix(in oklch, #D4D4D4 16%, transparent);} /* figure */
-.skel .r.tick{background:#D4D4D4;}         /* meta / caption */
-.skel .nm{position:absolute;left:8px;right:8px;bottom:4px;font-family:"Space Mono",monospace;
-  font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#9a9fa8;text-align:center;
+.skel .r.bar{background:var(--preview-ink);}   /* title / headline */
+.skel .r.blk{background:var(--preview-ink);}   /* numeral block */
+.skel .r.line{background:hsl(0 0% 45%);opacity:.4;}  /* body / lead lines */
+.skel .r.box{background:hsl(0 0% 45% / .14);}  /* figure */
+.skel .r.tick{background:hsl(0 0% 45% / .55);} /* meta / caption */
+.skel .nm{position:absolute;left:6px;right:6px;bottom:2px;font-family:"JetBrains Mono",monospace;
+  font-size:8px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted-fg);text-align:center;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.skel.sel .nm{color:oklch(59.2% .249 .584);}
+.skel.sel .nm{color:var(--preview-ink);font-weight:600;}
 
-/* ---- RIGHT SIDE ---- */
-#right{display:flex;flex-direction:column;min-width:0;min-height:0;background:#d8d6d4;}
-#toolbar{height:52px;flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:0 18px;
-  border-bottom:1px solid #e7e5e0;background:#ffffff;}
+/* ---- CENTER — preview ---- */
+#right{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--muted);}
+#toolbar{height:52px;flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:0 16px;
+  border-bottom:1px solid var(--border);background:var(--card);}
 #toolbar .spacer{flex:1;}
-.btn{background:#ffffff;color:#1c1f26;border:1px solid #fff;cursor:pointer;
-  font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
-  padding:9px 13px;border-radius:4px;display:inline-flex;align-items:center;gap:8px;}
-.btn:hover{border-color:#b7b4ad;}
-.btn.primary{background:#f6339a;border-color:#f6339a;color:#ffffff;font-weight:700;}
-.btn .dot{width:8px;height:8px;border-radius:50%;background:#c9c7c1;}
-.btn.on{background:#f6339a;border-color:#f6339a;color:#ffffff;} .btn.on .dot{background:#ffffff;}
-#dims{font-family:"Space Mono",monospace;font-size:11px;color:#8a8f99;}
+.btn{background:var(--card);color:var(--fg);border:1px solid var(--border);cursor:pointer;
+  font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+  padding:8px 12px;border-radius:var(--rad);display:inline-flex;align-items:center;gap:8px;
+  white-space:nowrap;flex-shrink:0;}
+.btn:hover{border-color:var(--accent);}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+.btn .dot{width:7px;height:7px;border-radius:50%;background:#cfccc5;}
+.btn.on{background:var(--accent);border-color:var(--accent);color:#fff;} .btn.on .dot{background:#fff;}
+/* layer toggles inside the right panel card */
+.toggles{display:flex;flex-wrap:wrap;gap:6px;}
+.toggles .btn{flex:1 1 auto;justify-content:center;}
+#dims{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--muted-fg);}
 
 #stagewrap{flex:1;overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:34px;}
 #stageScale{transform-origin:top center;}
+
 
 /* ============================================================
    THE PREVIEW PAPER — genuine grid scaffold (one source of truth)
@@ -96,11 +150,11 @@ input[type=range]{width:100%;accent-color:#f6339a;}
   --cols:12; --rows:0;
   --bl:8px; --lh:24px; --gutter:24px; --margin:72px; --maxw:1296px;
   --paper:#FCFBF9;                          /* warm off-white ground */
-  --ink:oklch(59.2% .249 .584);             /* primary display ink (pink) */
-  --ghost:#D4D4D4;         /* slate — offset double-print */
-  --ink-soft:#D4D4D4;      /* slate — labels / secondary */
-  --text:oklch(27% .02 256.802);            /* near-black body text on off-white */
-  --accent:oklch(59.2% .249 .584);
+  --ink:#002FA7;             /* primary display ink (Klein blue) */
+  --ghost:#D4D4D4;         /* light gray — offset double-print */
+  --ink-soft:hsl(0 0% 45%);/* gray — labels / secondary */
+  --text:hsl(0 0% 13%);                      /* near-black body text on off-white */
+  --accent:#002FA7;
   --ghost-dx:6px; --ghost-dy:8px;
   --g-col:color-mix(in oklch, var(--accent) 10%, transparent);
   --g-edge:color-mix(in oklch, var(--accent) 55%, transparent);
@@ -117,6 +171,12 @@ input[type=range]{width:100%;accent-color:#f6339a;}
 .wrap{position:relative;width:100%;padding:var(--pad,96px) var(--margin);min-height:inherit;z-index:2;}
 .grid{display:grid;grid-template-columns:repeat(var(--cols),1fr);
   grid-auto-rows:minmax(0,auto);column-gap:var(--gutter);row-gap:var(--lh);}
+/* layout-switch entrance: each placed item fades+rises in with a small stagger.
+   The delay is set inline per item in render() via --i. */
+@keyframes itemIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.grid > *{animation:itemIn .42s cubic-bezier(.22,.61,.36,1) both;
+  animation-delay:calc(var(--i,0) * 28ms);}
+@media (prefers-reduced-motion:reduce){ .grid > *{animation:none;} }
 
 /* content type — sizes are FLUID (set per-canvas in applyVars via --fs-* / --lh-*),
    line-heights are px multiples of --bl so the baseline lock still holds. */
@@ -184,76 +244,28 @@ figure{margin:0;position:relative;background:color-mix(in oklch, var(--ghost) 12
 </style></head>
 
 <body>
-<!-- ================= LEFT CONFIG PANEL ================= -->
-<aside id="panel">
-  <h1>Grid Prompt Studio</h1>
-  <p class="sub" data-i18n="sub">酸性瑞士 · 模块网格</p>
-
-  <div class="group">
-    <label class="cap" data-i18n="capLayout">布局 — 构图</label>
+<!-- ================= LEFT PANE — LAYOUT PICKER ================= -->
+<aside id="layouts">
+  <div class="lhead">
+    <div class="brand">
+      <span class="mark">G</span>
+      <b>Grid Studio</b>
+      <span>256</span>
+    </div>
+    <div class="section-label" data-i18n="capLayout">布局 — 构图</div>
+    <input type="text" id="layoutSearch" data-i18n-ph="phSearch" placeholder="搜索布局…">
+    <div class="archfilter" id="archFilter"></div>
+  </div>
+  <div id="skelsWrap">
+    <p id="layoutCount"></p>
     <div class="skels" id="skels"></div>
     <p class="hint" id="layoutHint"></p>
   </div>
-
-  <div class="group">
-    <label class="cap" data-i18n="capField">网格 / 模块(密度)</label>
-    <select id="field"></select>
-    <p class="hint" id="fieldHint"></p>
-  </div>
-
-  <div class="group">
-    <label class="cap" data-i18n="capCanvas">画布 — 尺寸</label>
-    <select id="canvas"></select>
-    <p class="hint" id="canvasHint"></p>
-  </div>
-
-  <div class="group">
-    <label class="cap" data-i18n="capParams">网格参数</label>
-    <div class="sliders">
-      <div class="slider"><label><span data-i18n="slBaseline">基线</span> <b id="blV">8</b>px</label><input type="range" id="bl" min="4" max="16" step="2" value="8"></div>
-      <div class="slider"><label><span data-i18n="slGutter">列间距</span> <b id="guV">24</b>px</label><input type="range" id="gu" min="8" max="48" step="4" value="24"></div>
-      <div class="slider"><label><span data-i18n="slMargin">页边距</span> <b id="maV">72</b>px</label><input type="range" id="ma" min="24" max="160" step="8" value="72"></div>
-      <div class="slider"><label><span data-i18n="slImg">图片行数</span> <b id="imV">12</b></label><input type="range" id="im" min="4" max="20" step="1" value="12"></div>
-    </div>
-    <div class="field" style="margin-top:12px;">
-      <label data-i18n="lblAccent">强调色</label>
-      <div class="accentrow">
-        <input type="color" id="accent" value="#f6339a">
-        <input type="text" id="accentHex" value="oklch(59.2% .249 .584)">
-      </div>
-      <p class="hint" data-i18n="hintAccent">默认荧光粉。酸性配色:电光蓝底、粉色墨、藏蓝重影。</p>
-    </div>
-  </div>
-
-  <div class="group">
-    <label class="cap" data-i18n="capEls">页面元素</label>
-    <div class="field"><label data-i18n="lbl_kicker">标签 / 日期</label><input type="text" id="f_kicker" value="2026 / 06 / 07"></div>
-    <div class="field"><label data-i18n="lbl_title">标题 / 主标题</label><input type="text" id="f_title" value="猫咪天堂"></div>
-    <div class="field"><label data-i18n="lbl_headline">副标题</label><textarea id="f_headline">按需定制,新鲜直达。</textarea></div>
-    <div class="field"><label data-i18n="lbl_lead">引言</label><textarea id="f_lead">在猫咪天堂,每一件都用心制作、为你定制,把温暖与喜悦带进你的日常。</textarea></div>
-    <div class="row2">
-      <div class="field"><label data-i18n="lbl_metaAk">元信息 A — 名称</label><input type="text" id="f_metaAk" value="工作室"></div>
-      <div class="field"><label data-i18n="lbl_metaAv">元信息 A — 内容</label><input type="text" id="f_metaAv" value="天堂制作"></div>
-    </div>
-    <div class="row2">
-      <div class="field"><label data-i18n="lbl_metaBk">元信息 B — 名称</label><input type="text" id="f_metaBk" value="版本"></div>
-      <div class="field"><label data-i18n="lbl_metaBv">元信息 B — 内容</label><input type="text" id="f_metaBv" value="第 04 期 · 2026"></div>
-    </div>
-    <div class="row2">
-      <div class="field"><label data-i18n="lbl_numeral">大数字</label><input type="text" id="f_numeral" value="04"></div>
-      <div class="field"><label data-i18n="lbl_numcap">数字说明</label><input type="text" id="f_numcap" value="新鲜上新"></div>
-    </div>
-    <div class="field"><label data-i18n="lbl_img">图片 URL(可选)</label><input type="text" id="f_img" value=""></div>
-    <div class="field"><label data-i18n="lbl_caption">图注</label><input type="text" id="f_caption" value="图 1 — 按需定制,新鲜送达你家门口。"></div>
-  </div>
 </aside>
 
-<!-- ================= RIGHT PREVIEW ================= -->
+<!-- ================= CENTER — PREVIEW ================= -->
 <section id="right">
   <div id="toolbar">
-    <button class="btn on" id="gridToggle"><span class="dot"></span><span class="lbl" data-i18n="tgGridHide">隐藏网格</span></button>
-    <button class="btn on" id="decoToggle"><span class="dot"></span><span class="lbl" data-i18n="tgDecor">装饰</span></button>
-    <button class="btn on" id="ghostToggle"><span class="dot"></span><span class="lbl" data-i18n="tgGhost">重影</span></button>
     <span id="dims"></span>
     <span class="spacer"></span>
     <button class="btn" id="langToggle">EN</button>
@@ -277,6 +289,73 @@ figure{margin:0;position:relative;background:color-mix(in oklch, var(--ghost) 12
     </div>
   </div>
 </section>
+
+<!-- ================= RIGHT PANE — PROPERTIES ================= -->
+<aside id="panel">
+  <h1>Grid Prompt Studio</h1>
+  <p class="sub" data-i18n="sub">瑞士网格 · 模块系统</p>
+
+  <div class="card">
+    <label class="cap" data-i18n="capLayers">显示图层</label>
+    <div class="toggles">
+      <button class="btn on" id="gridToggle"><span class="dot"></span><span class="lbl" data-i18n="tgGridHide">隐藏网格</span></button>
+      <button class="btn on" id="decoToggle"><span class="dot"></span><span class="lbl" data-i18n="tgDecor">装饰</span></button>
+      <button class="btn on" id="ghostToggle"><span class="dot"></span><span class="lbl" data-i18n="tgGhost">重影</span></button>
+    </div>
+  </div>
+
+  <div class="card">
+    <label class="cap" data-i18n="capField">网格 / 模块(密度)</label>
+    <select id="field"></select>
+    <p class="hint" id="fieldHint"></p>
+  </div>
+
+  <div class="card">
+    <label class="cap" data-i18n="capCanvas">画布 — 尺寸</label>
+    <select id="canvas"></select>
+    <p class="hint" id="canvasHint"></p>
+  </div>
+
+  <div class="card">
+    <label class="cap" data-i18n="capParams">网格参数</label>
+    <div class="sliders">
+      <div class="slider"><label><span data-i18n="slBaseline">基线</span> <b id="blV">8</b>px</label><input type="range" id="bl" min="4" max="16" step="2" value="8"></div>
+      <div class="slider"><label><span data-i18n="slGutter">列间距</span> <b id="guV">24</b>px</label><input type="range" id="gu" min="8" max="48" step="4" value="24"></div>
+      <div class="slider"><label><span data-i18n="slMargin">页边距</span> <b id="maV">72</b>px</label><input type="range" id="ma" min="24" max="160" step="8" value="72"></div>
+      <div class="slider"><label><span data-i18n="slImg">图片行数</span> <b id="imV">12</b></label><input type="range" id="im" min="4" max="20" step="1" value="12"></div>
+    </div>
+    <div class="field" style="margin-top:12px;">
+      <label data-i18n="lblAccent">强调色</label>
+      <div class="accentrow">
+        <input type="color" id="accent" value="#002FA7">
+        <input type="text" id="accentHex" value="#002FA7">
+      </div>
+      <p class="hint" data-i18n="hintAccent">默认克莱因蓝。配色:暖米白底、克莱因蓝墨、浅灰重影。可改任意色。</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <label class="cap" data-i18n="capEls">页面元素</label>
+    <div class="field"><label data-i18n="lbl_kicker">标签 / 日期</label><input type="text" id="f_kicker" value="2026 / 06 / 07"></div>
+    <div class="field"><label data-i18n="lbl_title">标题 / 主标题</label><input type="text" id="f_title" value="猫咪天堂"></div>
+    <div class="field"><label data-i18n="lbl_headline">副标题</label><textarea id="f_headline">按需定制,新鲜直达。</textarea></div>
+    <div class="field"><label data-i18n="lbl_lead">引言</label><textarea id="f_lead">在猫咪天堂,每一件都用心制作、为你定制,把温暖与喜悦带进你的日常。</textarea></div>
+    <div class="row2">
+      <div class="field"><label data-i18n="lbl_metaAk">元信息 A — 名称</label><input type="text" id="f_metaAk" value="工作室"></div>
+      <div class="field"><label data-i18n="lbl_metaAv">元信息 A — 内容</label><input type="text" id="f_metaAv" value="天堂制作"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label data-i18n="lbl_metaBk">元信息 B — 名称</label><input type="text" id="f_metaBk" value="版本"></div>
+      <div class="field"><label data-i18n="lbl_metaBv">元信息 B — 内容</label><input type="text" id="f_metaBv" value="第 04 期 · 2026"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label data-i18n="lbl_numeral">大数字</label><input type="text" id="f_numeral" value="04"></div>
+      <div class="field"><label data-i18n="lbl_numcap">数字说明</label><input type="text" id="f_numcap" value="新鲜上新"></div>
+    </div>
+    <div class="field"><label data-i18n="lbl_img">图片 URL(可选)</label><input type="text" id="f_img" value=""></div>
+    <div class="field"><label data-i18n="lbl_caption">图注</label><input type="text" id="f_caption" value="图 1 — 按需定制,新鲜送达你家门口。"></div>
+  </div>
+</aside>
 
 <textarea id="promptBuf" style="position:fixed;left:-9999px;top:0;"></textarea>
 
@@ -306,200 +385,217 @@ var CANVASES = {
 };
 
 /* ================================================================
-   COMPOSITION TEMPLATES — the real layout system.
-   Each place(cols) returns items placed by COLUMN line (a/b fractions
-   of the type area) AND ROW line (1-based) on a `rows`-row module grid.
-   Switching templates genuinely REFLOWS the page.
-   item: {key, a,b (col fractions), r1,r2 (row lines), opt:{arch,pill,center}}
+   COMPOSITION SYSTEM — a procedural generator yielding 256 distinct,
+   REAL layouts. Each generated template exposes the same shape the
+   engine already consumes — {name,nameZh,rows,desc,descZh,place(cols)} —
+   and place(cols) still returns items positioned by COLUMN line (a/b
+   fractions of the type area) AND ROW line (1-based) on a `rows`-row
+   module grid, so switching layouts genuinely REFLOWS the page.
+
+   Index 0…255 is a mixed-radix word over four orthogonal axes:
+     archetype = i & 7         (8 base arrangements)
+     rowsIdx   = (i>>3) & 3     (rows ∈ {4,5,6,7})
+     mirror    = (i>>5) & 1     (flip columns)
+     emphasis  = (i>>6) & 3     (standard / swap / banner / hero)
+   8 × 4 × 2 × 4 = 256.
+
+   Archetypes store items with NORMALIZED row bands (y1,y2 ∈ [0,1]); the
+   chosen row-count maps them onto integer row lines at place() time.
+   item: {key, a,b (col fractions), y1,y2 (row fractions), opt:{arch,pill,center}}
    ================================================================ */
 function L(cols,frac){ return Math.min(cols+1, Math.max(1, Math.round(frac*cols)+1)); }
 
-var TEMPLATES = {
-  editorial: {
-    name:"Editorial Stack", nameZh:"编辑堆叠", rows:6,
+/* ---- 8 base archetypes (normalized y-bands) ---- */
+var ARCHES = [
+  { id:'editorial', name:"Editorial Stack", nameZh:"编辑堆叠",
     desc:"Classic magazine spread: kicker → masthead → headline + big numeral → lead + tall figure → meta A/B + caption → folio.",
     descZh:"经典杂志跨页:导语标签 → 主标题 → 副标题+大数字 → 引言+竖图 → 元信息 A/B+图注 → 页脚。",
-    place:function(){return [
-      {key:'kicker',  a:0,b:0.34, r1:1,r2:2},
-      {key:'title',   a:0,b:0.82, r1:2,r2:3},
-      {key:'headline',a:0,b:0.58, r1:3,r2:4},
-      {key:'numeral', a:0.66,b:1, r1:3,r2:4},
-      {key:'lead',    a:0,b:0.46, r1:4,r2:5},
-      {key:'figure',  a:0.52,b:1, r1:4,r2:5},
-      {key:'metaA',   a:0,b:0.30, r1:5,r2:6},
-      {key:'metaB',   a:0.34,b:0.64, r1:5,r2:6},
-      {key:'caption', a:0.66,b:1, r1:5,r2:6},
-      {key:'folio',   a:0,b:1,    r1:6,r2:7}
-    ];}
-  },
-  split: {
-    name:"Asymmetric Split", nameZh:"非对称分栏", rows:6,
+    items:[
+      {key:'kicker',  a:0,b:0.34, y1:0,    y2:0.167},
+      {key:'title',   a:0,b:0.82, y1:0.167,y2:0.333},
+      {key:'headline',a:0,b:0.58, y1:0.333,y2:0.5},
+      {key:'numeral', a:0.66,b:1, y1:0.333,y2:0.5},
+      {key:'lead',    a:0,b:0.46, y1:0.5,  y2:0.667},
+      {key:'figure',  a:0.52,b:1, y1:0.5,  y2:0.667},
+      {key:'metaA',   a:0,b:0.30, y1:0.667,y2:0.833},
+      {key:'metaB',   a:0.34,b:0.64,y1:0.667,y2:0.833},
+      {key:'caption', a:0.66,b:1, y1:0.667,y2:0.833},
+      {key:'folio',   a:0,b:1,    y1:0.833,y2:1}
+    ]},
+  { id:'split', name:"Asymmetric Split", nameZh:"非对称分栏",
     desc:"Full-height image left, text stack right. Asymmetry held in tension by the grid.",
     descZh:"左侧满高图片,右侧文字栈。非对称由网格张力维系。",
-    place:function(){return [
-      {key:'figure',  a:0,b:0.46, r1:1,r2:6},
-      {key:'kicker',  a:0.52,b:1, r1:1,r2:2},
-      {key:'title',   a:0.52,b:1, r1:2,r2:3},
-      {key:'headline',a:0.52,b:1, r1:3,r2:4},
-      {key:'numeral', a:0.52,b:0.8,r1:4,r2:5},
-      {key:'lead',    a:0.52,b:1, r1:5,r2:6},
-      {key:'metaA',   a:0,b:0.46, r1:6,r2:7},
-      {key:'metaB',   a:0.52,b:0.78,r1:6,r2:7},
-      {key:'caption', a:0.8,b:1,  r1:6,r2:7}
-    ];}
-  },
-  poster: {
-    name:"Centered Poster", nameZh:"居中海报", rows:6,
-    desc:"Centered acid poster: date on top, arched rotated masthead, giant central numeral/hero, centered sub-headline, bottom pill caption.",
-    descZh:"居中酸性海报:顶部日期、拱形旋转主标题、中央巨型数字、居中副标题、底部胶囊说明。",
-    place:function(){return [
-      {key:'kicker',  a:0.33,b:0.67, r1:1,r2:2, opt:{center:1}},
-      {key:'title',   a:0.06,b:0.94, r1:2,r2:3, opt:{arch:1,center:1}},
-      {key:'numeral', a:0.30,b:0.70, r1:3,r2:5, opt:{center:1}},
-      {key:'headline',a:0.14,b:0.86, r1:5,r2:6, opt:{center:1}},
-      {key:'pill',    a:0.10,b:0.90, r1:6,r2:7}
-    ];}
-  },
-  index: {
-    name:"Index / Manifesto", nameZh:"索引 / 宣言", rows:5,
+    items:[
+      {key:'figure',  a:0,b:0.46, y1:0,    y2:0.833},
+      {key:'kicker',  a:0.52,b:1, y1:0,    y2:0.167},
+      {key:'title',   a:0.52,b:1, y1:0.167,y2:0.333},
+      {key:'headline',a:0.52,b:1, y1:0.333,y2:0.5},
+      {key:'numeral', a:0.52,b:0.8,y1:0.5, y2:0.667},
+      {key:'lead',    a:0.52,b:1, y1:0.667,y2:0.833},
+      {key:'metaA',   a:0,b:0.46, y1:0.833,y2:1},
+      {key:'metaB',   a:0.52,b:0.78,y1:0.833,y2:1},
+      {key:'caption', a:0.8,b:1,  y1:0.833,y2:1}
+    ]},
+  { id:'poster', name:"Centered Poster", nameZh:"居中海报",
+    desc:"Centered poster: date on top, arched rotated masthead, giant central numeral/hero, centered sub-headline, bottom pill caption.",
+    descZh:"居中海报:顶部日期、拱形旋转主标题、中央巨型数字、居中副标题、底部胶囊说明。",
+    items:[
+      {key:'kicker',  a:0.33,b:0.67,y1:0,   y2:0.167, opt:{center:1}},
+      {key:'title',   a:0.06,b:0.94,y1:0.167,y2:0.333,opt:{arch:1,center:1}},
+      {key:'numeral', a:0.30,b:0.70,y1:0.333,y2:0.667,opt:{center:1}},
+      {key:'headline',a:0.14,b:0.86,y1:0.667,y2:0.833,opt:{center:1}},
+      {key:'pill',    a:0.10,b:0.90,y1:0.833,y2:1}
+    ]},
+  { id:'index', name:"Index / Manifesto", nameZh:"索引 / 宣言",
     desc:"Giant data numeral left; right column reads as an index list (kicker/title/headline/lead, meta as rows); full-width folio.",
     descZh:"左侧巨型数字;右栏作为索引列表(标签/标题/副标题/引言,元信息成行);全宽页脚。",
-    place:function(){return [
-      {key:'numeral', a:0,b:0.5,  r1:1,r2:5},
-      {key:'kicker',  a:0.54,b:1, r1:1,r2:2},
-      {key:'title',   a:0.54,b:1, r1:2,r2:3},
-      {key:'headline',a:0.54,b:1, r1:3,r2:4},
-      {key:'lead',    a:0.54,b:1, r1:4,r2:5},
-      {key:'metaA',   a:0,b:0.24, r1:5,r2:6},
-      {key:'metaB',   a:0.28,b:0.5,r1:5,r2:6},
-      {key:'caption', a:0.54,b:1, r1:5,r2:6}
-    ];}
-  },
-  mosaic: {
-    name:"Modular Mosaic", nameZh:"模块拼贴", rows:5,
+    items:[
+      {key:'numeral', a:0,b:0.5,  y1:0,    y2:0.8},
+      {key:'kicker',  a:0.54,b:1, y1:0,    y2:0.2},
+      {key:'title',   a:0.54,b:1, y1:0.2,  y2:0.4},
+      {key:'headline',a:0.54,b:1, y1:0.4,  y2:0.6},
+      {key:'lead',    a:0.54,b:1, y1:0.6,  y2:0.8},
+      {key:'metaA',   a:0,b:0.24, y1:0.8,  y2:1},
+      {key:'metaB',   a:0.28,b:0.5,y1:0.8, y2:1},
+      {key:'caption', a:0.54,b:1, y1:0.8,  y2:1}
+    ]},
+  { id:'mosaic', name:"Modular Mosaic", nameZh:"模块拼贴",
     desc:"Title band on top, then figure + numeral + meta tiled into separate modules — shows off the row structure.",
     descZh:"顶部标题条,下方图片+数字+元信息平铺到各模块——凸显行结构。",
-    place:function(){return [
-      {key:'kicker',  a:0,b:1,    r1:1,r2:2},
-      {key:'title',   a:0,b:0.66, r1:2,r2:3},
-      {key:'numeral', a:0.7,b:1,  r1:2,r2:4},
-      {key:'figure',  a:0,b:0.5,  r1:3,r2:5},
-      {key:'headline',a:0.54,b:1, r1:4,r2:5},
-      {key:'lead',    a:0.54,b:1, r1:5,r2:6},
-      {key:'metaA',   a:0,b:0.24, r1:5,r2:6},
-      {key:'metaB',   a:0.28,b:0.5,r1:5,r2:6}
-    ];}
-  },
-  feature: {
-    name:"Feature Spread", nameZh:"专题跨页", rows:6,
+    items:[
+      {key:'kicker',  a:0,b:1,    y1:0,    y2:0.2},
+      {key:'title',   a:0,b:0.66, y1:0.2,  y2:0.4},
+      {key:'numeral', a:0.7,b:1,  y1:0.2,  y2:0.6},
+      {key:'figure',  a:0,b:0.5,  y1:0.4,  y2:0.8},
+      {key:'headline',a:0.54,b:1, y1:0.6,  y2:0.8},
+      {key:'lead',    a:0.54,b:1, y1:0.8,  y2:1},
+      {key:'metaA',   a:0,b:0.24, y1:0.8,  y2:1},
+      {key:'metaB',   a:0.28,b:0.5,y1:0.8, y2:1}
+    ]},
+  { id:'feature', name:"Feature Spread", nameZh:"专题跨页",
     desc:"Full-bleed figure top, masthead beneath it, two body columns + meta under.",
     descZh:"顶部满幅图,下方主标题,再下双栏正文+元信息。",
-    place:function(){return [
-      {key:'kicker',  a:0,b:0.4,  r1:1,r2:2},
-      {key:'figure',  a:0,b:1,    r1:2,r2:4},
-      {key:'title',   a:0,b:0.8,  r1:4,r2:5},
-      {key:'lead',    a:0,b:0.46, r1:5,r2:6},
-      {key:'headline',a:0.52,b:1, r1:5,r2:6},
-      {key:'metaA',   a:0,b:0.30, r1:6,r2:7},
-      {key:'metaB',   a:0.34,b:0.64,r1:6,r2:7},
-      {key:'numeral', a:0.7,b:1,  r1:6,r2:7}
-    ];}
-  },
-  cover: {
-    name:"Full-Bleed Cover", nameZh:"满幅封面", rows:6,
+    items:[
+      {key:'kicker',  a:0,b:0.4,  y1:0,    y2:0.167},
+      {key:'figure',  a:0,b:1,    y1:0.167,y2:0.5},
+      {key:'title',   a:0,b:0.8,  y1:0.5,  y2:0.667},
+      {key:'lead',    a:0,b:0.46, y1:0.667,y2:0.833},
+      {key:'headline',a:0.52,b:1, y1:0.667,y2:0.833},
+      {key:'metaA',   a:0,b:0.30, y1:0.833,y2:1},
+      {key:'metaB',   a:0.34,b:0.64,y1:0.833,y2:1},
+      {key:'numeral', a:0.7,b:1,  y1:0.833,y2:1}
+    ]},
+  { id:'cover', name:"Full-Bleed Cover", nameZh:"满幅封面",
     desc:"Big-type book/issue cover: kicker top, masthead fills the page, meta + lead anchored at the foot.",
     descZh:"大字号书刊封面:顶部标签,主标题铺满整页,元信息+引言锚定页脚。",
-    place:function(){return [
-      {key:'kicker',  a:0,b:0.5,  r1:1,r2:2},
-      {key:'numeral', a:0.7,b:1,  r1:1,r2:2},
-      {key:'title',   a:0,b:1,    r1:2,r2:5},
-      {key:'lead',    a:0,b:0.5,  r1:5,r2:6},
-      {key:'metaA',   a:0.54,b:0.76,r1:5,r2:6},
-      {key:'metaB',   a:0.78,b:1, r1:5,r2:6},
-      {key:'folio',   a:0,b:1,    r1:6,r2:7}
-    ];}
-  },
-  essay: {
-    name:"Two-Column Essay", nameZh:"双栏长文", rows:6,
-    desc:"Dense reading layout: masthead + sub-headline, a left body column facing a right figure with meta beneath.",
-    descZh:"密集阅读版式:主标题+副标题,左侧正文栏对应右侧图片,下方元信息。",
-    place:function(){return [
-      {key:'kicker',  a:0,b:0.34, r1:1,r2:2},
-      {key:'title',   a:0,b:1,    r1:2,r2:3},
-      {key:'headline',a:0,b:0.46, r1:3,r2:4},
-      {key:'lead',    a:0,b:0.46, r1:4,r2:6},
-      {key:'figure',  a:0.52,b:1, r1:3,r2:5},
-      {key:'metaA',   a:0.52,b:0.76,r1:5,r2:6},
-      {key:'metaB',   a:0.78,b:1, r1:5,r2:6},
-      {key:'folio',   a:0,b:1,    r1:6,r2:7}
-    ];}
-  },
-  triptych: {
-    name:"Triptych", nameZh:"三联画", rows:5,
+    items:[
+      {key:'kicker',  a:0,b:0.5,  y1:0,    y2:0.167},
+      {key:'numeral', a:0.7,b:1,  y1:0,    y2:0.167},
+      {key:'title',   a:0,b:1,    y1:0.167,y2:0.667},
+      {key:'lead',    a:0,b:0.5,  y1:0.667,y2:0.833},
+      {key:'metaA',   a:0.54,b:0.76,y1:0.667,y2:0.833},
+      {key:'metaB',   a:0.78,b:1, y1:0.667,y2:0.833},
+      {key:'folio',   a:0,b:1,    y1:0.833,y2:1}
+    ]},
+  { id:'triptych', name:"Triptych", nameZh:"三联画",
     desc:"Three equal columns held by the grid: title / headline / numeral across the top, body / figure / meta beneath.",
     descZh:"网格约束的三等分栏:顶部标题/副标题/数字,下方正文/图片/元信息。",
-    place:function(){return [
-      {key:'kicker',  a:0,b:1,    r1:1,r2:2},
-      {key:'title',   a:0,b:0.32, r1:2,r2:3},
-      {key:'headline',a:0.34,b:0.66,r1:2,r2:3},
-      {key:'numeral', a:0.68,b:1, r1:2,r2:3},
-      {key:'lead',    a:0,b:0.32, r1:3,r2:5},
-      {key:'figure',  a:0.34,b:0.66,r1:3,r2:5},
-      {key:'metaA',   a:0.68,b:1, r1:3,r2:4},
-      {key:'metaB',   a:0.68,b:1, r1:4,r2:5}
-    ];}
-  },
-  statement: {
-    name:"Statement", nameZh:"宣言", rows:5,
-    desc:"Minimal manifesto: a single centered statement holds the page, kicker above, lead + meta below.",
-    descZh:"极简宣言:一句居中陈述撑起整页,上方标签,下方引言+元信息。",
-    place:function(){return [
-      {key:'kicker',  a:0.32,b:0.68,r1:1,r2:2, opt:{center:1}},
-      {key:'title',   a:0.1,b:0.9, r1:2,r2:3, opt:{center:1}},
-      {key:'headline',a:0.08,b:0.92,r1:3,r2:4, opt:{center:1}},
-      {key:'lead',    a:0.25,b:0.75,r1:4,r2:5, opt:{center:1}},
-      {key:'folio',   a:0,b:1,     r1:5,r2:6}
-    ];}
-  },
-  contents: {
-    name:"Table of Contents", nameZh:"目录页", rows:6,
-    desc:"Index spread: big title + section numeral on the left, an entries list (headline/lead/meta/caption) running down the right.",
-    descZh:"目录跨页:左侧大标题+章节数字,右侧自上而下的条目列表(副标题/引言/元信息/图注)。",
-    place:function(){return [
-      {key:'title',   a:0,b:0.5,  r1:1,r2:3},
-      {key:'kicker',  a:0,b:0.5,  r1:3,r2:4},
-      {key:'numeral', a:0,b:0.4,  r1:4,r2:6},
-      {key:'headline',a:0.54,b:1, r1:1,r2:2},
-      {key:'lead',    a:0.54,b:1, r1:2,r2:3},
-      {key:'metaA',   a:0.54,b:1, r1:3,r2:4},
-      {key:'metaB',   a:0.54,b:1, r1:4,r2:5},
-      {key:'caption', a:0.54,b:1, r1:5,r2:6}
-    ];}
-  },
-  datasheet: {
-    name:"Data Sheet", nameZh:"数据页", rows:5,
-    desc:"Data-forward: a giant numeral anchors the left, title/headline + a meta table read on the right.",
-    descZh:"数据优先:左侧巨型数字定锚,右侧标题/副标题+元信息表格。",
-    place:function(){return [
-      {key:'kicker',  a:0,b:1,    r1:1,r2:2},
-      {key:'numeral', a:0,b:0.5,  r1:2,r2:4},
-      {key:'title',   a:0.54,b:1, r1:2,r2:3},
-      {key:'headline',a:0.54,b:1, r1:3,r2:4},
-      {key:'metaA',   a:0,b:0.24, r1:4,r2:5},
-      {key:'metaB',   a:0.28,b:0.5,r1:4,r2:5},
-      {key:'lead',    a:0.54,b:1, r1:4,r2:5},
-      {key:'folio',   a:0,b:1,    r1:5,r2:6}
-    ];}
+    items:[
+      {key:'kicker',  a:0,b:1,    y1:0,    y2:0.2},
+      {key:'title',   a:0,b:0.32, y1:0.2,  y2:0.4},
+      {key:'headline',a:0.34,b:0.66,y1:0.2,y2:0.4},
+      {key:'numeral', a:0.68,b:1, y1:0.2,  y2:0.4},
+      {key:'lead',    a:0,b:0.32, y1:0.4,  y2:0.8},
+      {key:'figure',  a:0.34,b:0.66,y1:0.4,y2:0.8},
+      {key:'metaA',   a:0.68,b:1, y1:0.4,  y2:0.6},
+      {key:'metaB',   a:0.68,b:1, y1:0.6,  y2:0.8}
+    ]}
+];
+var ROWS_OPTS = [4,5,6,7];
+var EMPH = [
+  {en:"Standard", zh:"标准", descEn:"baseline arrangement", descZh:"基础排布"},
+  {en:"Swap",     zh:"对调", descEn:"numeral and figure trade places", descZh:"大数字与图片对调位置"},
+  {en:"Banner",   zh:"横幅", descEn:"headline promoted to a full-width band", descZh:"副标题提升为全宽横幅"},
+  {en:"Hero",     zh:"主视觉", descEn:"hero element widened for emphasis", descZh:"主视觉元素加宽以强调"}
+];
+
+function cloneItems(items){ return items.map(function(it){
+  return {key:it.key,a:it.a,b:it.b,y1:it.y1,y2:it.y2,opt:it.opt?{arch:it.opt.arch,pill:it.opt.pill,center:it.opt.center}:undefined}; }); }
+function findItem(items,key){ for(var i=0;i<items.length;i++) if(items[i].key===key) return items[i]; return null; }
+
+/* deterministic emphasis transforms over the normalized item list */
+function applyEmphasis(items,emp){
+  if(emp===1){ // SWAP numeral ↔ figure (column + row band)
+    var n=findItem(items,'numeral'), f=findItem(items,'figure');
+    if(n&&f){ var t=['a','b','y1','y2']; t.forEach(function(p){ var tmp=n[p]; n[p]=f[p]; f[p]=tmp; }); }
+  } else if(emp===2){ // BANNER — headline spans the full type area (centered → symmetric widen)
+    var h=findItem(items,'headline');
+    if(h){ if(h.opt&&h.opt.center){ h.a=0.02; h.b=0.98; } else { h.a=0; h.b=1; } }
+  } else if(emp===3){ // HERO — widen the hero (title, else numeral)
+    var hero=findItem(items,'title')||findItem(items,'numeral');
+    if(hero){ if(hero.opt&&hero.opt.center){ hero.a=Math.max(0,hero.a-0.12); hero.b=Math.min(1,hero.b+0.12); }
+      else { hero.a=Math.max(0,hero.a-0.12); hero.b=Math.min(1,hero.b+0.18); } }
   }
-};
+  return items;
+}
+
+/* 8 distinct kicker/label bands keyed by (mirror<<2 | emphasis) — the kicker
+   exists in every archetype, so repositioning it guarantees all 256 layouts
+   are geometrically distinct even when the semantic transforms above no-op.
+   Flush kickers get asymmetric bands; centered kickers get symmetric widths. */
+var KICKER_FLUSH=[[0,0.34],[0.33,0.67],[0.66,1],[0,1],[0,0.5],[0.5,1],[0,0.26],[0.74,1]];
+var KICKER_CENTER=[[0.40,0.60],[0.33,0.67],[0.25,0.75],[0.15,0.85],[0.42,0.58],[0.30,0.70],[0.20,0.80],[0.10,0.90]];
+function applyKickerVariant(items,mir,emp){
+  var k=findItem(items,'kicker'); if(!k) return;
+  var idx=((mir&1)<<2)|(emp&3);
+  var band=(k.opt&&k.opt.center)?KICKER_CENTER[idx]:KICKER_FLUSH[idx];
+  k.a=band[0]; k.b=band[1];
+}
+
+var _layoutCache={};
+function genLayout(i){
+  i=((i%256)+256)%256;
+  if(_layoutCache[i]) return _layoutCache[i];
+  var arch=ARCHES[i&7], rows=ROWS_OPTS[(i>>3)&3], mir=(i>>5)&1, emp=(i>>6)&3;
+  var base=cloneItems(arch.items);
+  if(mir) base.forEach(function(it){ if(!(it.opt&&it.opt.center)){ var na=1-it.b, nb=1-it.a; it.a=na; it.b=nb; } });
+  applyEmphasis(base,emp);
+  applyKickerVariant(base,mir,emp);
+  var lang=EMPH[emp];
+  var name=arch.name+" · "+rows+"r"+(mir?" · Mirror":"")+" · "+lang.en;
+  var nameZh=arch.nameZh+" · "+rows+"行"+(mir?" · 镜像":"")+" · "+lang.zh;
+  var desc=arch.desc+" — "+rows+"-row field"+(mir?", mirrored columns":"")+", "+lang.descEn+".";
+  var descZh=arch.descZh+" —— "+rows+" 行模块场"+(mir?",列镜像":"")+","+lang.descZh+"。";
+  var tpl={ id:arch.id, idx:i, rows:rows, mirror:!!mir, emphasis:emp,
+    name:name, nameZh:nameZh, desc:desc, descZh:descZh,
+    place:function(){
+      return base.map(function(it){
+        var r1=Math.round(it.y1*rows)+1, r2=Math.round(it.y2*rows)+1;
+        if(r1<1)r1=1; if(r2>rows+1)r2=rows+1; if(r2<=r1)r2=Math.min(rows+1,r1+1);
+        return {key:it.key, a:it.a, b:it.b, r1:r1, r2:r2, opt:it.opt};
+      });
+    }
+  };
+  _layoutCache[i]=tpl;
+  return tpl;
+}
+var LAYOUT_COUNT=256;
+
+/* back-compat: old string layout keys → a representative index */
+var LEGACY_LAYOUT={ editorial:16, split:17, poster:18, index:11, mosaic:12,
+  feature:21, cover:22, triptych:15, essay:16, statement:18, contents:11, datasheet:11 };
 
 /* ---------------- state + i18n ---------------- */
-var state = { layout:'poster', field:'col12', canvas:'posterB2', bl:8, gu:24, ma:72, im:12, accent:'oklch(59.2% .249 .584)', lang:'en' };
+/* layout is a numeric index 0…255 into the generator; 18 = Poster · 6r · Standard */
+var state = { layout:18, field:'col12', canvas:'posterB2', bl:8, gu:24, ma:72, im:12, accent:'#002FA7', lang:'en' };
 
 /* UI string dictionary — {en, zh}. Used by t(key). */
 var UI = {
-  sub:        {en:"Acid Swiss · Modular Grid", zh:"酸性瑞士 · 模块网格"},
+  sub:        {en:"Swiss Grid · Modular System", zh:"瑞士网格 · 模块系统"},
   capLayout:  {en:"Layout — composition",      zh:"布局 — 构图"},
+  capLayers:  {en:"Display layers",             zh:"显示图层"},
+  phSearch:   {en:"Search layouts…",           zh:"搜索布局…"},
+  archAll:    {en:"All",                        zh:"全部"},
   capField:   {en:"Grid / field (density)",    zh:"网格 / 模块(密度)"},
   capCanvas:  {en:"Canvas — format",           zh:"画布 — 尺寸"},
   capParams:  {en:"Grid parameters",           zh:"网格参数"},
@@ -509,8 +605,8 @@ var UI = {
   slMargin:   {en:"Margin",    zh:"页边距"},
   slImg:      {en:"Img rows",  zh:"图片行数"},
   lblAccent:  {en:"Accent",    zh:"强调色"},
-  hintAccent: {en:"Pink default. Palette: warm off-white ground, pink ink, slate ghost.",
-               zh:"默认粉色。配色:暖米白底、粉色墨、石板蓝重影。"},
+  hintAccent: {en:"Klein blue default. Palette: warm off-white ground, Klein-blue ink, light-gray ghost. Editable to any hue.",
+               zh:"默认克莱因蓝。配色:暖米白底、克莱因蓝墨、浅灰重影。可改为任意颜色。"},
   lbl_kicker: {en:"Kicker / date",  zh:"标签 / 日期"},
   lbl_title:  {en:"Title / Masthead", zh:"标题 / 主标题"},
   lbl_headline:{en:"Headline",      zh:"副标题"},
@@ -566,15 +662,17 @@ function gcol(a,b,cols){ var x=L(a,cols),y=L(b,cols); if(y<=x)y=Math.min(cols+1,
 
 function render(){
   readFields();
-  var tpl=TEMPLATES[state.layout], cols=FIELDS[state.field].cols;
+  var tpl=genLayout(state.layout), cols=FIELDS[state.field].cols;
   var grid=document.getElementById('grid');
   grid.style.gridTemplateRows='repeat('+tpl.rows+', auto)';
   grid.innerHTML='';
+  var _i=0;
   tpl.place(cols).forEach(function(it){
     var node=makeNode(it);
     if(!node) return;
     node.style.gridColumn=gcol(it.a,it.b,cols);
     node.style.gridRow=it.r1+' / '+it.r2;
+    node.style.setProperty('--i', _i++);
     grid.appendChild(node);
   });
   applyVars();
@@ -628,7 +726,7 @@ function makeNode(it){
   else if(k==='caption'){ if(!els.caption)return null; node=el('div','cap',els.caption); }
   else if(k==='pill'){ if(!els.lead&&!els.caption)return null; node=el('div','pill',els.lead||els.caption); }
   else if(k==='folio'){
-    node=el('div','folio', nm(TEMPLATES[state.layout])+'  ·  '+nm(FIELDS[state.field])+'  ·  '+nm(CANVASES[state.canvas])+'  ·  '+t('slBaseline')+' '+state.bl+'px');
+    node=el('div','folio', nm(genLayout(state.layout))+'  ·  '+nm(FIELDS[state.field])+'  ·  '+nm(CANVASES[state.canvas])+'  ·  '+t('slBaseline')+' '+state.bl+'px');
   }
   if(node && o.center) node.classList.add('center');
   return node;
@@ -650,6 +748,9 @@ function applyVars(){
   p.style.setProperty('--ink', state.accent);
   p.style.setProperty('--g-col', 'color-mix(in oklch, '+state.accent+' 10%, transparent)');
   p.style.setProperty('--g-edge', 'color-mix(in oklch, '+state.accent+' 55%, transparent)');
+  // keep the app chrome accent (buttons / chips / focus / picker echo) in sync with the ink
+  document.documentElement.style.setProperty('--accent', state.accent);
+  document.documentElement.style.setProperty('--preview-ink', state.accent);
   p.style.width=C.w+'px';
   p.classList.toggle('fixed', !!C.h);
   p.style.height = C.h ? C.h+'px' : '';
@@ -658,7 +759,7 @@ function applyVars(){
   fitStage();
   document.getElementById('dims').textContent =
     C.w+(C.h?' × '+C.h:' × auto')+'px  ·  '+F.cols+(state.lang==='zh'?' 列':' cols')+(F.rows?' × '+F.rows+(state.lang==='zh'?' 行':' rows'):'')+
-    '  ·  '+nm(TEMPLATES[state.layout])+'  ·  '+t('slBaseline')+' '+state.bl+' lh '+lh;
+    '  ·  '+nm(genLayout(state.layout))+'  ·  '+t('slBaseline')+' '+state.bl+' lh '+lh;
 }
 function hexA(hex,a){ hex=hex.replace('#',''); if(hex.length===3)hex=hex.split('').map(function(x){return x+x;}).join('');
   var r=parseInt(hex.slice(0,2),16),g=parseInt(hex.slice(2,4),16),b=parseInt(hex.slice(4,6),16);
@@ -689,10 +790,18 @@ function applyFluidType(C, lh){
 
 function fitStage(){
   var p=document.getElementById('paper'), wrap=document.getElementById('stagewrap'), scaleEl=document.getElementById('stageScale');
+  var C=CANVASES[state.canvas];
   var availW=wrap.clientWidth-68, availH=wrap.clientHeight-68;
-  var w=p.offsetWidth||CANVASES[state.canvas].w, h=p.offsetHeight||w;
-  // fit BOTH width and height so the whole page stays on screen (never upscale past 1)
-  var s=Math.min(1, availW/w, availH/h);
+  var w=p.offsetWidth||C.w;
+  var s;
+  if(C.h){ // fixed page (A4 / poster / square) — fit BOTH so the whole page is visible
+    var h=p.offsetHeight||C.h;
+    s=Math.min(1, availW/w, availH/h);
+  } else { // fluid-height canvas — fit WIDTH only and scroll vertically, so the
+    // scale depends only on the (constant) canvas width and switching layouts
+    // no longer rescales the whole preview.
+    s=Math.min(1, availW/w);
+  }
   scaleEl.style.transform='scale('+s+')';
 }
 window.addEventListener('resize', function(){ fitStage(); opticalAlign(); });
@@ -714,12 +823,12 @@ function sparkSVG(size,color){
 }
 function buildDeco(){
   var d=document.getElementById('deco'); d.innerHTML='';
-  // sparkles (deterministic positions; navy ghost behind each pink for poster vibe)
-  var sp=[[88,6,46,'ink'],[6,84,52,'ink'],[90,80,30,'ink'],[10,22,26,'ghost']];
+  // sparkles (deterministic positions; a gray ghost copy is offset behind each ink star)
+  var sp=[[88,6,46],[6,84,52],[90,80,30],[10,22,26]];
   sp.forEach(function(s){
     var ghost='<div class="spark" style="position:absolute;left:'+(s[0])+'%;top:'+(s[1])+'%;transform:translate(6px,8px);">'+sparkSVG(s[2],'var(--ghost)')+'</div>';
-    var pink ='<div class="spark" style="position:absolute;left:'+(s[0])+'%;top:'+(s[1])+'%;">'+sparkSVG(s[2], s[3]==='ghost'?'var(--ghost)':'var(--ink)')+'</div>';
-    d.insertAdjacentHTML('beforeend', ghost+pink);
+    var ink  ='<div class="spark" style="position:absolute;left:'+(s[0])+'%;top:'+(s[1])+'%;">'+sparkSVG(s[2],'var(--ink)')+'</div>';
+    d.insertAdjacentHTML('beforeend', ghost+ink);
   });
   // squiggles
   d.insertAdjacentHTML('beforeend',
@@ -772,35 +881,65 @@ function roleClass(key){
   if(key==='pill')return 'box';
   return 'tick';
 }
-function buildSkels(){
-  var host=document.getElementById('skels'); host.innerHTML='';
-  Object.keys(TEMPLATES).forEach(function(key){
-    var tpl=TEMPLATES[key], R=tpl.rows;
-    var card=document.createElement('div'); card.className='skel'+(key===state.layout?' sel':'');
-    card.setAttribute('data-key',key);
+/* draw a layout's wireframe skeleton into `frame` (reused by the left list) */
+function drawSkeleton(frame, tpl){
+  var R=tpl.rows;
+  tpl.place(12).forEach(function(it){
+    if(it.key==='folio')return;
+    var r=document.createElement('div'); r.className='r '+roleClass(it.key);
+    var x=it.a*100, w=(it.b-it.a)*100, y=(it.r1-1)/R*100, h=(it.r2-it.r1)/R*100;
+    r.style.left=(x*0.92+4)+'%'; r.style.width=Math.max(2,w*0.92)+'%';
+    r.style.top=(y*0.86+7)+'%'; r.style.height=Math.max(3,h*0.86-3)+'%';
+    if(roleClass(it.key)==='line'){ r.style.height='3px'; }
+    frame.appendChild(r);
+  });
+}
+
+/* LEFT pane — 256 layout thumbnails with archetype filter + text search */
+var _layoutFilter={ arch:'all', q:'' };
+function buildLayoutList(){
+  var host=document.getElementById('skels'); if(!host) return; host.innerHTML='';
+  var q=_layoutFilter.q.toLowerCase(), shown=0;
+  for(var i=0;i<LAYOUT_COUNT;i++){
+    var tpl=genLayout(i);
+    if(_layoutFilter.arch!=='all' && tpl.id!==_layoutFilter.arch) continue;
+    if(q){ var hay=(tpl.name+' '+tpl.nameZh).toLowerCase(); if(hay.indexOf(q)<0) continue; }
+    var card=document.createElement('div'); card.className='skel'+(i===state.layout?' sel':'');
+    card.setAttribute('data-idx',i);
     var frame=document.createElement('div'); frame.className='frame';
-    tpl.place(12).forEach(function(it){
-      if(it.key==='folio')return;
-      var r=document.createElement('div'); r.className='r '+roleClass(it.key);
-      var x=it.a*100, w=(it.b-it.a)*100, y=(it.r1-1)/R*100, h=(it.r2-it.r1)/R*100;
-      var px=6; // inset percentage padding feel
-      r.style.left=(x*0.92+4)+'%'; r.style.width=Math.max(2,w*0.92)+'%';
-      r.style.top=(y*0.86+7)+'%'; r.style.height=Math.max(3,h*0.86-3)+'%';
-      if(roleClass(it.key)==='line'){ r.style.height='3px'; }
-      frame.appendChild(r);
-    });
+    drawSkeleton(frame, tpl);
     var nmEl=document.createElement('div'); nmEl.className='nm'; nmEl.textContent=nm(tpl);
     card.appendChild(frame); card.appendChild(nmEl);
     card.addEventListener('click',function(){
-      state.layout=this.getAttribute('data-key');
+      state.layout=parseInt(this.getAttribute('data-idx'),10);
       document.querySelectorAll('.skel').forEach(function(s){s.classList.remove('sel');});
       this.classList.add('sel');
-      document.getElementById('layoutHint').textContent=ds(TEMPLATES[state.layout]);
+      document.getElementById('layoutHint').textContent=ds(genLayout(state.layout));
       render();
     });
-    host.appendChild(card);
-  });
+    host.appendChild(card); shown++;
+  }
+  var cEl=document.getElementById('layoutCount');
+  if(cEl) cEl.textContent=(state.lang==='zh'? shown+' / '+LAYOUT_COUNT+' 种布局' : shown+' / '+LAYOUT_COUNT+' layouts');
 }
+/* archetype filter chips — All + the 8 base archetypes */
+function buildArchChips(){
+  var host=document.getElementById('archFilter'); if(!host) return; host.innerHTML='';
+  function chip(id,label){
+    var c=document.createElement('button'); c.className='chip'+(_layoutFilter.arch===id?' on':'');
+    c.textContent=label; c.setAttribute('data-arch',id);
+    c.addEventListener('click',function(){
+      _layoutFilter.arch=this.getAttribute('data-arch');
+      document.querySelectorAll('.chip').forEach(function(x){x.classList.remove('on');});
+      this.classList.add('on'); buildLayoutList();
+    });
+    host.appendChild(c);
+  }
+  chip('all', t('archAll'));
+  ARCHES.forEach(function(a){ chip(a.id, nm(a)); });
+}
+/* keep the old name as an alias so existing call sites still work */
+function buildSkels(){ buildLayoutList(); }
 
 /* ---------------- PROMPT GENERATION (bilingual) ---------------- */
 function buildPrompt(){
@@ -816,13 +955,13 @@ function elContent(it){
   return '';
 }
 function buildPromptEn(){
-  var tpl=TEMPLATES[state.layout], F=FIELDS[state.field], C=CANVASES[state.canvas], cols=F.cols, lh=state.bl*3;
+  var tpl=genLayout(state.layout), F=FIELDS[state.field], C=CANVASES[state.canvas], cols=F.cols, lh=state.bl*3;
   function sp(a,b){ var x=L(a,cols),y=L(b,cols); if(y<=x)y=Math.min(cols+1,x+1); return 'cols '+x+'/'+y; }
   var labelMap={kicker:'KICKER (mono caps)',title:'TITLE / MASTHEAD (display, ghost + optical)',headline:'HEADLINE',
     numeral:'NUMERAL (large data figure)',lead:'LEAD',figure:'FIGURE',metaA:'META COLUMN A',metaB:'META COLUMN B',
     caption:'CAPTION (mono)',pill:'PILL CAPTION (rounded outline)',folio:'FOLIO'};
   var o=[];
-  o.push('Build an editorial/poster webpage on a GENUINE modular grid (Müller-Brockmann engineering) rendered in an ACID-SWISS style — the grid must be real, visible, and verifiable, not decorative.');
+  o.push('Build an editorial/poster webpage on a GENUINE modular grid (Müller-Brockmann engineering) rendered in a SWISS style with a Klein-blue display ink — the grid must be real, visible, and verifiable, not decorative.');
   o.push('');
   o.push('COMPOSITION — '+tpl.name);
   o.push('- '+tpl.desc);
@@ -838,14 +977,14 @@ function buildPromptEn(){
     o.push('- '+(labelMap[it.key]||it.key)+': "'+content+'" → '+sp(it.a,it.b)+', rows '+it.r1+'/'+it.r2+extra);
   });
   o.push('');
-  o.push('PALETTE (acid)');
-  o.push('- Warm off-white ground #FCFBF9, pink ink '+state.accent+', slate ghost #D4D4D4, near-black body oklch(27% .02 256.802).');
+  o.push('PALETTE (Swiss)');
+  o.push('- Warm off-white ground #FCFBF9, Klein-blue display ink '+state.accent+', light-gray ghost #D4D4D4, near-black body hsl(0 0% 13%). The ink is a single accent variable — swap it for any hue to recolor the whole composition.');
   o.push('');
   o.push('TYPOGRAPHY & DECORATION');
-  o.push('- Grotesque sans (Inter / Helvetica Now / Archivo) for display+body; mono (Space Mono) for kickers/folios/captions/grid annotations; CJK via Noto Sans SC. Flush-left except centered poster bands. Hierarchy via scale + weight.');
-  o.push('- Offset GHOST double-print on display type: a navy copy translated +6/+8px behind the pink (::before content:attr(data-text), same box/wrap/align).');
-  o.push('- Decoration: 4-point sparkle stars and wavy squiggle lines in the margins/negative space (pink + navy ghost), behind content.');
-  if(state.layout==='poster')o.push('- Poster specifics: arched + slightly rotated masthead, giant centered numeral/hero, bottom pill-outline caption.');
+  o.push('- Grotesque sans (Inter / Helvetica Now / Archivo) for display+body; mono (JetBrains Mono / Space Mono) for kickers/folios/captions/grid annotations; CJK via Noto Sans SC. Flush-left except centered poster bands. Hierarchy via scale + weight.');
+  o.push('- Offset GHOST double-print on display type: a light-gray copy translated +6/+8px behind the ink (::before content:attr(data-text), same box/wrap/align).');
+  o.push('- Decoration: 4-point sparkle stars and wavy squiggle lines in the margins/negative space (ink + gray ghost), behind content.');
+  if(genLayout(state.layout).id==='poster')o.push('- Poster specifics: arched + slightly rotated masthead, giant centered numeral/hero, bottom pill-outline caption.');
   o.push('');
   o.push('LOAD-BEARING ENGINEERING (must hold)');
   o.push('- Overlay lives in the SAME content box (left/right=var(--margin), same repeat(var(--cols),1fr)+gutter) so overlay columns ARE content columns at every width.');
@@ -858,13 +997,13 @@ function buildPromptEn(){
   return o.join('\n');
 }
 function buildPromptZh(){
-  var tpl=TEMPLATES[state.layout], F=FIELDS[state.field], C=CANVASES[state.canvas], cols=F.cols, lh=state.bl*3;
+  var tpl=genLayout(state.layout), F=FIELDS[state.field], C=CANVASES[state.canvas], cols=F.cols, lh=state.bl*3;
   function sp(a,b){ var x=L(a,cols),y=L(b,cols); if(y<=x)y=Math.min(cols+1,x+1); return '列 '+x+'/'+y; }
   var labelMap={kicker:'标签 KICKER(等宽大写)',title:'主标题 TITLE / MASTHEAD(展示字体,带重影+光学对齐)',headline:'副标题 HEADLINE',
     numeral:'大数字 NUMERAL(大号数据数字)',lead:'引言 LEAD',figure:'图片 FIGURE',metaA:'元信息列 A',metaB:'元信息列 B',
     caption:'图注 CAPTION(等宽)',pill:'胶囊说明 PILL(圆角描边)',folio:'页脚 FOLIO'};
   var o=[];
-  o.push('请基于一个「真实的」模块化网格(Müller-Brockmann 布罗克曼工程)构建一个编辑/海报风格网页,并以「酸性瑞士」风格呈现 —— 网格必须真实、可见、可校验,而非装饰性的。');
+  o.push('请基于一个「真实的」模块化网格(Müller-Brockmann 布罗克曼工程)构建一个编辑/海报风格网页,并以「瑞士」风格(克莱因蓝展示墨)呈现 —— 网格必须真实、可见、可校验,而非装饰性的。');
   o.push('');
   o.push('构图 — '+nm(tpl));
   o.push('- '+ds(tpl));
@@ -880,14 +1019,14 @@ function buildPromptZh(){
     o.push('- '+(labelMap[it.key]||it.key)+':「'+content+'」→ '+sp(it.a,it.b)+',行 '+it.r1+'/'+it.r2+extra);
   });
   o.push('');
-  o.push('配色(酸性)');
-  o.push('- 暖米白底 #FCFBF9,粉色墨 '+state.accent+',石板蓝重影 #D4D4D4,近黑正文 oklch(27% .02 256.802)。');
+  o.push('配色(瑞士)');
+  o.push('- 暖米白底 #FCFBF9,克莱因蓝展示墨 '+state.accent+',浅灰重影 #D4D4D4,近黑正文 hsl(0 0% 13%)。墨色是单一强调变量——可换成任意色相整体改色。');
   o.push('');
   o.push('字体与装饰');
-  o.push('- 展示字与正文用无衬线 grotesque(Inter / Helvetica Now / Archivo);标签/页脚/图注/网格标注用等宽(Space Mono);中文用 Noto Sans SC。除居中海报条带外一律左对齐(右侧不齐)。层级靠字号+字重,而非颜色。');
-  o.push('- 展示字带「重影双印」:在粉色字后方偏移 +6/+8px 放一份藏蓝副本(::before content:attr(data-text),与本体同盒、同换行、同对齐)。');
-  o.push('- 装饰:四角星芒 + 波浪曲线,置于页边/留白处(粉色 + 藏蓝重影),位于内容之后。');
-  if(state.layout==='poster')o.push('- 海报专属:拱形且略微旋转的主标题、居中巨型数字主视觉、底部胶囊描边说明。');
+  o.push('- 展示字与正文用无衬线 grotesque(Inter / Helvetica Now / Archivo);标签/页脚/图注/网格标注用等宽(JetBrains Mono / Space Mono);中文用 Noto Sans SC。除居中海报条带外一律左对齐(右侧不齐)。层级靠字号+字重,而非颜色。');
+  o.push('- 展示字带「重影双印」:在墨色字后方偏移 +6/+8px 放一份浅灰副本(::before content:attr(data-text),与本体同盒、同换行、同对齐)。');
+  o.push('- 装饰:四角星芒 + 波浪曲线,置于页边/留白处(墨色 + 浅灰重影),位于内容之后。');
+  if(genLayout(state.layout).id==='poster')o.push('- 海报专属:拱形且略微旋转的主标题、居中巨型数字主视觉、底部胶囊描边说明。');
   o.push('');
   o.push('承重工程(必须保证)');
   o.push('- 叠加层与内容处于同一内容盒(left/right=var(--margin),相同的 repeat(var(--cols),1fr)+列间距),使叠加层的列在任意宽度下都「就是」内容的列。');
@@ -914,7 +1053,7 @@ document.getElementById('exportPng').addEventListener('click', function(){
   var self=this, paper=document.getElementById('paper'), t0=self.textContent; self.textContent=t('btnRender');
   var wasGrid=paper.classList.contains('grid-on'); paper.classList.remove('grid-on'); // hide overlay in export
   htmlToImage.toPng(paper,{pixelRatio:2,backgroundColor:'#FCFBF9',cacheBust:true,width:paper.offsetWidth,height:paper.offsetHeight})
-    .then(function(url){ var a=document.createElement('a'); a.download='acid-grid-'+state.layout+'-'+state.field+'.png'; a.href=url; a.click();
+    .then(function(url){ var a=document.createElement('a'); a.download='swiss-grid-'+state.layout+'-'+state.field+'.png'; a.href=url; a.click();
       if(wasGrid)paper.classList.add('grid-on'); self.textContent=t0; })
     .catch(function(err){ console.error(err); if(wasGrid)paper.classList.add('grid-on'); self.textContent=t('btnFail'); setTimeout(function(){self.textContent=t0;},1500); });
 });
@@ -926,7 +1065,7 @@ function fillSelect(id,map){ var s=document.getElementById(id); var cur=s.value;
 fillSelect('field',FIELDS); fillSelect('canvas',CANVASES);
 
 function syncHints(){
-  document.getElementById('layoutHint').textContent=ds(TEMPLATES[state.layout]);
+  document.getElementById('layoutHint').textContent=ds(genLayout(state.layout));
   document.getElementById('fieldHint').textContent=hn(FIELDS[state.field]);
   document.getElementById('canvasHint').textContent=hn(CANVASES[state.canvas]);
 }
@@ -963,6 +1102,8 @@ function applyLang(){
   document.documentElement.lang = state.lang==='zh'?'zh-CN':'en';
   // static text nodes
   document.querySelectorAll('[data-i18n]').forEach(function(elx){ elx.textContent=t(elx.getAttribute('data-i18n')); });
+  // placeholders
+  document.querySelectorAll('[data-i18n-ph]').forEach(function(elx){ elx.placeholder=t(elx.getAttribute('data-i18n-ph')); });
   // grid toggle label depends on current on/off state
   var p=document.getElementById('paper');
   document.getElementById('gridToggle').querySelector('.lbl').textContent = p.classList.contains('grid-on')?t('tgGridHide'):t('tgGridShow');
@@ -971,9 +1112,13 @@ function applyLang(){
   // re-fill selects with translated names
   fillSelect('field',FIELDS); fillSelect('canvas',CANVASES);
   document.getElementById('field').value=state.field; document.getElementById('canvas').value=state.canvas;
-  // skeleton names + hints
-  buildSkels(); syncHints();
+  // archetype chips + skeleton names + hints
+  buildArchChips(); buildSkels(); syncHints();
 }
+/* layout search box */
+document.getElementById('layoutSearch').addEventListener('input', function(){
+  _layoutFilter.q=this.value.trim(); buildLayoutList();
+});
 document.getElementById('langToggle').addEventListener('click', function(){
   var switchSample = sampleMatchesOther();   // only swap demo content if untouched
   state.lang = state.lang==='zh'?'en':'zh';
@@ -985,7 +1130,9 @@ document.getElementById('langToggle').addEventListener('click', function(){
 (function initQuery(){
   var q=new URLSearchParams(location.search);
   if(q.get('lang')==='en'||q.get('lang')==='zh') state.lang=q.get('lang');
-  if(q.get('layout')&&TEMPLATES[q.get('layout')]) state.layout=q.get('layout');
+  if(q.get('layout')!=null){ var lv=q.get('layout');
+    if(/^\d+$/.test(lv)){ state.layout=((parseInt(lv,10)%256)+256)%256; }
+    else if(LEGACY_LAYOUT[lv]!=null){ state.layout=LEGACY_LAYOUT[lv]; } }
   if(q.get('field')&&FIELDS[q.get('field')]) state.field=q.get('field');
   if(q.get('canvas')&&CANVASES[q.get('canvas')]) state.canvas=q.get('canvas');
   ['bl','gu','im'].forEach(function(k){ if(q.get(k)){ state[k]=parseInt(q.get(k),10); var s=document.getElementById(k); if(s){s.value=state[k]; var lbl=document.getElementById(k+'V'); if(lbl)lbl.textContent=state[k];} } });
@@ -1004,6 +1151,8 @@ document.getElementById('langToggle').addEventListener('click', function(){
 })();
 // if starting in English, swap the (Chinese) default sample content to English
 if(state.lang==='en') loadSample('en');
-buildSkels(); applyLang(); render();
+applyLang(); render();
+// reveal the active layout card in the left list
+(function(){ var sel=document.querySelector('#skels .skel.sel'); if(sel)sel.scrollIntoView({block:'nearest'}); })();
 </script>
 </body></html>
